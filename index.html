@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kawaii Cat Gachapon</title>
+    <style>
+        :root {
+            --primary-color: #ff9ff3;
+            --secondary-color: #feca57;
+            --background-color: #2c3e50;
+            --text-color: #ecf0f1;
+            --card-color: #34495e;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px var(--shadow-color);
+            letter-spacing: 2px;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 40px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+        }
+
+        .gachapon-machine {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 20px var(--shadow-color);
+            width: 300px;
+        }
+
+        .gachapon-machine h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+
+        #gachapon-display {
+            width: 200px;
+            height: 200px;
+            background-color: #4a6c8a;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            color: var(--primary-color);
+            box-shadow: inset 0 0 20px var(--shadow-color);
+        }
+        
+        #capsule-display {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            margin: 20px auto;
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: var(--background-color);
+            animation: dispense 1s ease-in-out;
+        }
+
+        @keyframes dispense {
+            0% { transform: translateY(-200px) rotate(0deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+
+        #get-cat-button {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        #get-cat-button:hover {
+            background-color: #ff79c6;
+        }
+        
+        #currency {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+
+        .cat-collection {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            padding: 30px;
+            flex-grow: 1;
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+
+        .cat-collection h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            text-align: center;
+        }
+
+        #collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .cat-card {
+            background-color: var(--background-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .cat-card.collected {
+            opacity: 1;
+            border-color: var(--secondary-color);
+        }
+
+        .cat-card img {
+            width: 80px;
+            height: 80px;
+        }
+
+        .cat-card p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .new-cat-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            margin: 15% auto;
+            padding: 40px;
+            border: 5px solid var(--primary-color);
+            border-radius: 20px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal-content img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-content h3 {
+            color: var(--secondary-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Kawaii Cat Gachapon</h1>
+
+    <div class="game-container">
+        <div class="gachapon-machine">
+            <h2>Gachapon Machine</h2>
+            <div id="gachapon-display">?</div>
+            <div id="capsule-display"></div>
+            <p>Your Coins: <span id="currency">10</span></p>
+            <button id="get-cat-button">Get a Cat (Cost: 2)</button>
+        </div>
+
+        <div class="cat-collection">
+            <h2>Your Collection</h2>
+            <div id="collection-grid"></div>
+        </div>
+    </div>
+
+    <div id="new-cat-modal" class="new-cat-modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>You got a new cat!</h3>
+            <img id="modal-cat-image" src="" alt="New Cat">
+            <p id="modal-cat-name"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currencyDisplay = document.getElementById('currency');
+            const getCatButton = document.getElementById('get-cat-button');
+            const collectionGrid = document.getElementById('collection-grid');
+            const gachaponDisplay = document.getElementById('gachapon-display');
+            const capsuleDisplay = document.getElementById('capsule-display');
+            const modal = document.getElementById('new-cat-modal');
+            const modalCatImage = document.getElementById('modal-cat-image');
+            const modalCatName = document.getElementById('modal-cat-name');
+            const closeButton = document.querySelector('.close-button');
+
+
+            let currency = 10;
+
+            const cats = [
+                { id: 1, name: 'Mochi', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmZDNkMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 2, name: 'Yuki', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2YwZjBmMCIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 3, name: 'Kuro', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzMzMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 4, name: 'Sakura', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmYzBjNyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                 { id: 5, name: 'Taro', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2E1MmEyYSIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                 { id: 6, name: 'Hana', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmN2FjNiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+            ];
+
+            const collectedCats = new Set();
+
+            function initializeCollection() {
+                collectionGrid.innerHTML = '';
+                cats.forEach(cat => {
+                    const catCard = document.createElement('div');
+                    catCard.classList.add('cat-card');
+                    catCard.dataset.catId = cat.id;
+                    catCard.innerHTML = `
+                        <img src="${cat.image}" alt="${cat.name}">
+                        <p>${cat.name}</p>
+                    `;
+                    collectionGrid.appendChild(catCard);
+                });
+            }
+
+            getCatButton.addEventListener('click', () => {
+                if (currency >= 2) {
+                    currency -= 2;
+                    currencyDisplay.textContent = currency;
+                    
+                    gachaponDisplay.style.display = 'none';
+                    capsuleDisplay.style.display = 'flex';
+
+                    setTimeout(() => {
+                        const randomIndex = Math.floor(Math.random() * cats.length);
+                        const cat = cats[randomIndex];
+
+                        if (!collectedCats.has(cat.id)) {
+                            collectedCats.add(cat.id);
+                            const catCard = document.querySelector(`.cat-card[data-cat-id='${cat.id}']`);
+                            catCard.classList.add('collected');
+                        }
+                        
+                        modalCatImage.src = cat.image;
+                        modalCatName.textContent = cat.name;
+                        modal.style.display = "block";
+
+                        gachaponDisplay.style.display = 'flex';
+                        capsuleDisplay.style.display = 'none';
+                    }, 1000);
+
+                } else {
+                    alert("You don't have enough coins!");
+                }
+            });
+            
+            closeButton.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+            
+            setInterval(() => {
+                currency += 1;
+                currencyDisplay.textContent = currency;
+            }, 5000);
+
+            initializeCollection();
+        });
+    </script>
+</body>
+</html>
