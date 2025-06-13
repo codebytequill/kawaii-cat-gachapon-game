@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kawaii Cat Gachapon</title>
+    <title>Kawaii Cat Gachapon 2.0</title>
     <style>
         :root {
             --primary-color: #ff9ff3;
@@ -12,6 +12,10 @@
             --text-color: #ecf0f1;
             --card-color: #34495e;
             --shadow-color: rgba(0, 0, 0, 0.2);
+            /* --- NEW: Rarity Colors --- */
+            --common-color: #a4b0be;
+            --rare-color: #54a0ff;
+            --super-rare-color: #ff6b6b;
         }
 
         body {
@@ -32,11 +36,33 @@
             letter-spacing: 2px;
         }
 
+        /* --- NEW: Message styling --- */
+        #message-display {
+            position: fixed;
+            top: 20px;
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1001;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(-20px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+        }
+
+
         .game-container {
             display: flex;
+            flex-wrap: wrap; /* NEW: Allow wrapping on smaller screens */
             gap: 40px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px; /* NEW: Increased max-width */
             justify-content: center;
         }
 
@@ -66,25 +92,36 @@
             font-size: 5rem;
             color: var(--primary-color);
             box-shadow: inset 0 0 20px var(--shadow-color);
+            position: relative; /* NEW */
+        }
+        
+        /* NEW: Dispense animation container */
+        #capsule-animation-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none; 
         }
         
         #capsule-display {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background-color: var(--secondary-color);
-            margin: 20px auto;
-            display: none; /* Initially hidden */
+            position: absolute;
+            top: -100px; /* Start off-screen */
+            left: calc(50% - 40px);
+            display: flex;
             justify-content: center;
             align-items: center;
             font-size: 2rem;
             color: var(--background-color);
-            animation: dispense 1s ease-in-out;
+            animation: dispense 1s ease-in-out forwards;
         }
 
         @keyframes dispense {
-            0% { transform: translateY(-200px) rotate(0deg); }
-            100% { transform: translateY(0) rotate(360deg); }
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(160px) rotate(360deg); }
         }
 
 
@@ -96,12 +133,21 @@
             font-size: 1.2rem;
             border-radius: 10px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.1s ease;
             margin-top: 20px;
         }
+        
+        #get-cat-button:disabled { /* NEW */
+            background-color: #a4b0be;
+            cursor: not-allowed;
+        }
 
-        #get-cat-button:hover {
+        #get-cat-button:hover:enabled { /* NEW */
             background-color: #ff79c6;
+        }
+
+        #get-cat-button:active:enabled { /* NEW */
+            transform: scale(0.95);
         }
         
         #currency {
@@ -114,13 +160,30 @@
             border-radius: 20px;
             padding: 30px;
             flex-grow: 1;
+            min-width: 300px; /* NEW */
             box-shadow: 0 10px 20px var(--shadow-color);
         }
+        
+        /* NEW: Collection header */
+        .collection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
 
-        .cat-collection h2 {
+        .collection-header h2 {
             color: var(--secondary-color);
-            margin-top: 0;
+            margin: 0;
             text-align: center;
+        }
+        
+        #collection-counter { /* NEW */
+            background-color: var(--background-color);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
         #collection-grid {
@@ -134,17 +197,45 @@
 
         .cat-card {
             background-color: var(--background-color);
-            border: 2px solid var(--primary-color);
+            border: 3px solid var(--card-color); /* NEW: Thicker border */
             border-radius: 10px;
             padding: 10px;
             text-align: center;
             opacity: 0.5;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, border-color 0.3s ease;
+            position: relative; /* NEW */
+            overflow: hidden; /* NEW */
         }
         
         .cat-card.collected {
             opacity: 1;
-            border-color: var(--secondary-color);
+        }
+        
+        /* --- NEW: Rarity styling for cards --- */
+        .cat-card.rarity-Common.collected { border-color: var(--common-color); }
+        .cat-card.rarity-Rare.collected { border-color: var(--rare-color); }
+        .cat-card.rarity-Super-Rare.collected { 
+            border-color: var(--super-rare-color); 
+            animation: pulse 2s infinite;
+        }
+        
+        /* NEW: Rarity tag on card */
+        .rarity-tag {
+            position: absolute;
+            top: 5px;
+            right: -25px;
+            background-color: var(--rarity-color);
+            color: white;
+            padding: 2px 20px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            transform: rotate(45deg);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px 0px var(--super-rare-color); }
+            50% { box-shadow: 0 0 15px 5px var(--super-rare-color); }
+            100% { box-shadow: 0 0 5px 0px var(--super-rare-color); }
         }
 
         .cat-card img {
@@ -160,7 +251,7 @@
         .new-cat-modal {
             display: none;
             position: fixed;
-            z-index: 1;
+            z-index: 1000; /* NEW: z-index */
             left: 0;
             top: 0;
             width: 100%;
@@ -179,6 +270,14 @@
             max-width: 400px;
             text-align: center;
             position: relative;
+        }
+        
+        /* --- NEW: Rarity styling for modal border --- */
+        .modal-content.rarity-Common { border-color: var(--common-color); }
+        .modal-content.rarity-Rare { border-color: var(--rare-color); }
+        .modal-content.rarity-Super-Rare { 
+            border-color: var(--super-rare-color);
+            animation: pulse 2s infinite;
         }
 
         .close-button {
@@ -199,25 +298,35 @@
         
         .modal-content h3 {
             color: var(--secondary-color);
+            font-size: 1.8rem; /* NEW */
         }
 
     </style>
 </head>
 <body>
 
+    <div id="message-display"></div>
+
     <h1>Kawaii Cat Gachapon</h1>
 
     <div class="game-container">
         <div class="gachapon-machine">
             <h2>Gachapon Machine</h2>
-            <div id="gachapon-display">?</div>
-            <div id="capsule-display"></div>
+            <div id="gachapon-display">
+                ?
+                <div id="capsule-animation-container">
+                    <div id="capsule-display"></div>
+                </div>
+            </div>
             <p>Your Coins: <span id="currency">10</span></p>
             <button id="get-cat-button">Get a Cat (Cost: 2)</button>
         </div>
 
         <div class="cat-collection">
-            <h2>Your Collection</h2>
+            <div class="collection-header">
+                <h2>Your Collection</h2>
+                <div id="collection-counter">0 / 12</div>
+            </div>
             <div id="collection-grid"></div>
         </div>
     </div>
@@ -225,10 +334,10 @@
     <div id="new-cat-modal" class="new-cat-modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h3>You got a new cat!</h3>
+            <h3 id="modal-title">You got a new cat!</h3>
             <img id="modal-cat-image" src="" alt="New Cat">
             <p id="modal-cat-name"></p>
-        </div>
+            <p id="modal-cat-rarity"></p> </div>
     </div>
 
     <script>
@@ -236,32 +345,84 @@
             const currencyDisplay = document.getElementById('currency');
             const getCatButton = document.getElementById('get-cat-button');
             const collectionGrid = document.getElementById('collection-grid');
-            const gachaponDisplay = document.getElementById('gachapon-display');
-            const capsuleDisplay = document.getElementById('capsule-display');
+            const capsuleAnimationContainer = document.getElementById('capsule-animation-container');
             const modal = document.getElementById('new-cat-modal');
+            const modalContent = modal.querySelector('.modal-content'); // NEW
+            const modalTitle = document.getElementById('modal-title'); // NEW
             const modalCatImage = document.getElementById('modal-cat-image');
             const modalCatName = document.getElementById('modal-cat-name');
+            const modalCatRarity = document.getElementById('modal-cat-rarity'); // NEW
             const closeButton = document.querySelector('.close-button');
+            const collectionCounter = document.getElementById('collection-counter'); // NEW
+            const messageDisplay = document.getElementById('message-display'); // NEW
 
 
             let currency = 10;
-
+            // NEW: Updated cat list with rarity
             const cats = [
-                { id: 1, name: 'Mochi', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmZDNkMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
-                { id: 2, name: 'Yuki', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2YwZjBmMCIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
-                { id: 3, name: 'Kuro', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzMzMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
-                { id: 4, name: 'Sakura', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmYzBjNyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
-                 { id: 5, name: 'Taro', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2E1MmEyYSIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
-                 { id: 6, name: 'Hana', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmN2FjNiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 1, name: 'Mochi', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmZDNkMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 2, name: 'Yuki', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2YwZjBmMCIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 3, name: 'Kuro', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzMzMyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 4, name: 'Sakura', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmYzBjNyIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 5, name: 'Taro', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2E1MmEyYSIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2VjZjBmMSIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNlY2YwZjEiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 6, name: 'Hana', rarity: 'Common', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmN2FjNiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iIzMzMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiMzMzMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 7, name: 'Cosmo', rarity: 'Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzU0YTBlZiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2ZmZDNkMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNmZmQzZDMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 8, name: 'Ginga', rarity: 'Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzk5ODBlYSIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2ZmZDNkMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNmZmQzZDMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 9, name: 'Orion', rarity: 'Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzFlOWJmZiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iNSIgZmlsbD0iI2ZmZDNkMyIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNmZmQzZDMiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
+                { id: 10, name: 'Kin', rarity: 'Super Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmZDczOSIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iOCIgZmlsbD0iI2ZmZDNkMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iNjUiIGN5PSI0NSIgcj0iOCIgZmlsbD0iI2ZmZDNkMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTUwLDU1IENzNSw2NSA0NSw2NSA1MCw1NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=' },
+                { id: 11, name: 'Ruby', rarity: 'Super Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI2ZmNmI2YiIvPjxwYXRoIGQ9Ik0zMCwzMCBRNDAsMjAgNTAsMzAgVDcwLDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMzUiIGN5PSI0NSIgcj0iOCIgZmlsbD0iI2ZmZDNkMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iNjUiIGN5PSI0NSIgcj0iOCIgZmlsbD0iI2ZmZDNkMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTUwLDU1IENzNSw2NSA0NSw2NSA1MCw1NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=' },
+                { id: 12, name: 'Nova', rarity: 'Super Rare', image: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSI1NSUiIGN5PSI1NSUiIHI9IjY1JSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmN2FjNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzk5ODBlYSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSJ1cmwoI2cpIi8+PHBhdGggZD0iTTMwLDMwIFE0MCwyMCA1MCwzMCBUNzAsMzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2VjZjBmMSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIzNSIgY3k9IjQ1IiByPSI4IiBmaWxsPSIjZmZkM2QzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz48Y2lyY2xlIGN4PSI2NSIgY3k9IjQ1IiByPSI4IiBmaWxsPSIjZmZkM2QzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNTAsNTUgQzU1LDY1IDQ1LDY1IDUwLDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNlY2YwZjEiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==' },
             ];
 
-            const collectedCats = new Set();
+            let collectedCats = new Set();
+
+            // --- NEW: Game State Management ---
+            function saveProgress() {
+                const gameState = {
+                    currency: currency,
+                    collectedCatIds: Array.from(collectedCats)
+                };
+                localStorage.setItem('catGachaponState', JSON.stringify(gameState));
+            }
+
+            function loadProgress() {
+                const savedState = localStorage.getItem('catGachaponState');
+                if (savedState) {
+                    const gameState = JSON.parse(savedState);
+                    currency = gameState.currency;
+                    collectedCats = new Set(gameState.collectedCatIds);
+                }
+            }
+            
+            function updateUI() {
+                currencyDisplay.textContent = currency;
+                collectionCounter.textContent = `${collectedCats.size} / ${cats.length}`;
+                
+                cats.forEach(cat => {
+                    const catCard = document.querySelector(`.cat-card[data-cat-id='${cat.id}']`);
+                    if (collectedCats.has(cat.id)) {
+                        catCard.classList.add('collected');
+                    }
+                });
+            }
+            
+            function showMessage(msg) {
+                messageDisplay.textContent = msg;
+                messageDisplay.style.display = 'block';
+                // Trigger reflow to restart animation
+                void messageDisplay.offsetWidth;
+                messageDisplay.style.animation = 'fadeInOut 3s ease-in-out';
+
+                setTimeout(() => {
+                    messageDisplay.style.display = 'none';
+                }, 2900);
+            }
 
             function initializeCollection() {
                 collectionGrid.innerHTML = '';
                 cats.forEach(cat => {
                     const catCard = document.createElement('div');
-                    catCard.classList.add('cat-card');
+                    catCard.classList.add('cat-card', `rarity-${cat.rarity}`); // NEW
                     catCard.dataset.catId = cat.id;
                     catCard.innerHTML = `
                         <img src="${cat.image}" alt="${cat.name}">
@@ -272,34 +433,47 @@
             }
 
             getCatButton.addEventListener('click', () => {
-                if (currency >= 2) {
-                    currency -= 2;
-                    currencyDisplay.textContent = currency;
-                    
-                    gachaponDisplay.style.display = 'none';
-                    capsuleDisplay.style.display = 'flex';
-
-                    setTimeout(() => {
-                        const randomIndex = Math.floor(Math.random() * cats.length);
-                        const cat = cats[randomIndex];
-
-                        if (!collectedCats.has(cat.id)) {
-                            collectedCats.add(cat.id);
-                            const catCard = document.querySelector(`.cat-card[data-cat-id='${cat.id}']`);
-                            catCard.classList.add('collected');
-                        }
-                        
-                        modalCatImage.src = cat.image;
-                        modalCatName.textContent = cat.name;
-                        modal.style.display = "block";
-
-                        gachaponDisplay.style.display = 'flex';
-                        capsuleDisplay.style.display = 'none';
-                    }, 1000);
-
-                } else {
-                    alert("You don't have enough coins!");
+                if (currency < 2) {
+                    showMessage("You don't have enough coins!");
+                    return;
                 }
+
+                currency -= 2;
+                getCatButton.disabled = true; // NEW
+                
+                capsuleAnimationContainer.style.display = 'block';
+
+                setTimeout(() => {
+                    const randomIndex = Math.floor(Math.random() * cats.length);
+                    const cat = cats[randomIndex];
+
+                    modalCatImage.src = cat.image;
+                    modalCatName.textContent = cat.name;
+                    modalCatRarity.textContent = `Rarity: ${cat.rarity}`; // NEW
+                    
+                    // NEW: Style modal based on rarity
+                    modalContent.className = 'modal-content'; // Reset classes
+                    modalContent.classList.add(`rarity-${cat.rarity}`);
+
+                    if (collectedCats.has(cat.id)) {
+                        // DUPLICATE
+                        modalTitle.textContent = "It's a duplicate!";
+                        modalCatName.textContent = `You already have ${cat.name}.`;
+                        modalCatRarity.textContent = "Here's 1 coin back!";
+                        currency += 1; // Bonus coin
+                    } else {
+                        // NEW CAT
+                        modalTitle.textContent = "You got a new cat!";
+                        collectedCats.add(cat.id);
+                    }
+                    
+                    modal.style.display = "block";
+                    updateUI();
+                    saveProgress();
+
+                    capsuleAnimationContainer.style.display = 'none';
+                    getCatButton.disabled = false; // NEW
+                }, 1000);
             });
             
             closeButton.onclick = function() {
@@ -312,12 +486,21 @@
                 }
             }
             
+            // Passive income
             setInterval(() => {
                 currency += 1;
-                currencyDisplay.textContent = currency;
+                updateUI();
+                saveProgress();
             }, 5000);
+            
+            // --- NEW: Initial Game Load ---
+            function init() {
+                loadProgress();
+                initializeCollection();
+                updateUI();
+            }
 
-            initializeCollection();
+            init();
         });
     </script>
 </body>
